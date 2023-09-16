@@ -1,0 +1,30 @@
+ABCWin:
+    Window_test:
+
+<Window_test>:
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+
+        Screen:
+            orientation: "vertical"
+            size: root.width, root.height
+
+            MDLabel:
+                id: text_show
+                text: "Please enter name"
+                font_size: 20
+                pos_hint: {"center_x": .5, "center_y": .7}
+                
+            MDTextField:
+                id: name
+                mode: "rectangle"
+                width: 30
+                font_size: 16
+                pos_hint: {"center_x": .5, "center_y": .5}
+            
+            MDRaisedButton:
+                text: "Submit"
+                size_hint: (.4, .07)
+                font_size: "24sp"
+                on_release: root.wow()
