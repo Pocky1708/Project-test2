@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install Cython
+        run: pip install cython
+
+      
       - uses: actions/checkout@v3
 
       - name: Install Buildozer
