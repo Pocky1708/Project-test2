@@ -1,17 +1,125 @@
+
 from kivymd.app import MDApp
-from kivy.lang.builder import Builder
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivymd.uix.screenmanager import MDScreenManager
+from kivymd.uix.screen import MDScreen
+from kivy.lang import Builder
+from kivy.core.text import LabelBase
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton, MDFillRoundFlatIconButton
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.clock import Clock
+from kivymd.uix.backdrop import MDBackdrop
+import firebase_admin
+from firebase_admin import firestore
+from firebase_admin import credentials
 
-class TestingApp(MDApp):
-    def build(self):
-        self.theme_cls.theme_style = "Light"
-        return Builder.load_file("main.kv")
+# Initialize Firebase Admin with the credentials file
+cred = credentials.Certificate("assets/user-management-de483-firebase-adminsdk-otrho-2797ce9e07.json")
+# เชื่อมต่อกับคอลเลกชัน "data"
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-class ABCWin(ScreenManager):
+# doc_ref = db.collection("Information").document("alovelace")
+# doc_ref.set({"first": "Ada", "last": "Lovelace", "born": 1815})
+
+
+
+LabelBase.register(name="default_font", fn_regular="assets/Poppins-Regular.ttf")
+
+class ContentNavigationDrawer(MDBoxLayout):
     pass
 
-class Window_test(Screen):
-    def wow(self):
-        self.ids.text_show.text = self.ids.name.text
+class FirstScreen(MDScreenManager):
+    pass
+
+class MainApp(MDApp):
+    def build(self):
+        self.title = "ATC Technology"
+        self.theme_cls.theme_style = "Light"
+
+        return Builder.load_file("Sign.kv")
+class LoginWindow(MDScreen):
+    def build(self):
+        self.title = "ATC Technology"
+        self.theme_cls.theme_style = "Light"
+
+    def check_info(self):
+        U_name = self.ids.Name.text
+        U_passwd = self.ids.passWord.text
+
+        try:
+            if U_name != "" and U_passwd != "":
+                users_ref = db.collection("Information").document(U_name)
+                docs = users_ref.get()
+
+                if docs.exists:
+                    user_info = docs.to_dict()
+                    if U_passwd == user_info["password"]:
+                        self.manager.current = "main"
+                    else:
+                        raise Exception()
+                else:
+                    raise Exception()
+            else:
+                raise Exception()
+        except:
+            self.error_login = MDDialog(
+                title="Error", text="Access Failed\nPlease check your username and password"
+            )
+            self.error_login.open()
+    def show_pass(self, checkbox, value):
+        if value:
+            self.ids.passWord.password = False
+        else:
+            self.ids.passWord.password = True
+
+class RegisterWindow(MDScreen):
+    def check_data(self):
+        name = self.ids.F_Name.text
+        pasw = self.ids.F_passWord.text
+
+        users_ref = db.collection("Information").document(name)
+        docs = users_ref.get()
+
+
+        if docs.exists:
+            self.dialog_error_name = MDDialog(
+                text="This Username already exists"
+            )
+            self.dialog_error_name.open()
+        else:
+            if name != "" and name != " " and pasw != "" and pasw != " ":
+                users_ref.set({"password": pasw})
+
+                self.success_regis = MDDialog(
+                    title="Successful!",
+                    text="You have been registered",
+                    auto_dismiss = False,
+                    buttons=[
+                        MDFlatButton(
+                            text="OK",
+                            on_release=lambda *args: self.success_regis.dismiss()
+                            )
+                        ]
+                    )
+                self.success_regis.open()
+            else:
+                self.dialog_error_passw = MDDialog(text="Please fill the username and password")
+                self.dialog_error_passw.open()
+
+class MainWindow(MDScreen):
+    pass
+class find_Devices(MDScreen):
+    def toggle_backdrop(self):
+        self.backdrop = MDBackdrop(title="Hello")
+        # self.backdrop.close()
+        print("Countdown..")
+
+        Clock.schedule_once(self.open_backdrop, 5)
+
+    def open_backdrop(self, dt):
+        self.backdrop.open()
+        print("Backdrop Opened!")
+
 if __name__ == "__main__":
-    TestingApp().run()
+    MainApp().run()
